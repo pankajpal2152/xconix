@@ -1,38 +1,29 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
-
-// --- Placeholder Dashboards ---
-const EmployeeDashboard = () => (
-  <div className="p-10 text-center">
-    <h1 className="text-2xl font-bold text-indigo-600">Employee Dashboard</h1>
-    <p>Welcome! You can see your attendance here.</p>
-    <button onClick={() => { localStorage.clear(); window.location.href = '/' }} className="mt-4 px-4 py-2 bg-red-500 text-white rounded">Logout</button>
-  </div>
-);
-
-const AdminDashboard = () => (
-  <div className="p-10 text-center">
-    <h1 className="text-2xl font-bold text-red-600">Admin Dashboard</h1>
-    <p>Restricted Area. Manage all employees here.</p>
-    <button onClick={() => { localStorage.clear(); window.location.href = '/' }} className="mt-4 px-4 py-2 bg-red-500 text-white rounded">Logout</button>
-  </div>
-);
+import EmployeeDashboard from './pages/EmployeeDashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import EditEmployee from './pages/EditEmployee';
+import EditAttendance from './pages/EditAttendance';
+import AddAttendance from './pages/AddAttendance';
+import AddEmployee from './pages/AddEmployee';
 
 // --- PROTECTED ROUTE COMPONENT ---
-// This checks if the user has the correct role
+// This was missing in your file, causing the "ReferenceError"
 const ProtectedRoute = ({ children, allowedRole }) => {
-  const userRole = localStorage.getItem('userRole'); // Get saved role
+  const userRole = localStorage.getItem('userRole');
 
+  // 1. Not logged in? Go to Login
   if (!userRole) {
-    return <Navigate to="/" replace />; // Not logged in? Go to login
+    return <Navigate to="/" replace />;
   }
 
+  // 2. Logged in but wrong role? Go to your dashboard
   if (userRole !== allowedRole) {
-    // If employee tries to access admin, send them to their own page
     return <Navigate to={userRole === 'admin' ? '/admin' : '/employee'} replace />;
   }
 
+  // 3. Authorized!
   return children;
 };
 
@@ -40,9 +31,10 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Public Login Route */}
         <Route path="/" element={<Login />} />
 
-        {/* Protected Employee Route */}
+        {/* Employee Routes */}
         <Route
           path="/employee"
           element={
@@ -52,7 +44,7 @@ function App() {
           }
         />
 
-        {/* Protected Admin Route */}
+        {/* Admin Dashboard */}
         <Route
           path="/admin"
           element={
@@ -61,6 +53,45 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Admin Features - Edit Pages */}
+        <Route
+          path="/admin/edit-employee/:id"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <EditEmployee />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/edit-attendance/:id"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <EditAttendance />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Features - Add Logs */}
+        <Route
+          path="/admin/add-attendance"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <AddAttendance />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/add-employee"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <AddEmployee />
+            </ProtectedRoute>
+          }
+        />
+
       </Routes>
     </Router>
   );
